@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import styled from "@emotion/styled";
-import { Link, navigate } from "gatsby";
+import { Link } from "gatsby";
 import { useColorMode } from "theme-ui";
 
 import Section from "@components/Section";
@@ -8,32 +8,20 @@ import Logo from "@components/Logo";
 
 import Icons from "@icons";
 import mediaqueries from "@styles/media";
-import {
-  copyToClipboard,
-  getWindowDimensions,
-  getBreakpointFromTheme,
-} from "@utils";
+import { copyToClipboard } from "@utils";
 
 function NavigationHeader() {
   const [showBackArrow, setShowBackArrow] = useState<boolean>(false);
-  const [previousPath, setPreviousPath] = useState<string>("/");
 
   const [colorMode] = useColorMode();
   const fill = colorMode === "dark" ? "#fff" : "#000";
 
   useEffect(() => {
-    const { width } = getWindowDimensions();
-    const phablet = getBreakpointFromTheme("phablet");
-
-    const prev = localStorage.getItem("previousPath");
+    const previousPath = localStorage.getItem("previousPath");
     const previousPathWasHomepage =
-      prev === "/" || (prev && prev.includes("/page/"));
+      previousPath === "/" || (previousPath && previousPath.includes("/page/"));
     const isNotPaginated = !location.pathname.includes("/page/");
-
-    setShowBackArrow(
-      previousPathWasHomepage && isNotPaginated && width <= phablet,
-    );
-    setPreviousPath(prev);
+    setShowBackArrow(previousPathWasHomepage && isNotPaginated);
   }, []);
 
   return (
@@ -54,21 +42,30 @@ function NavigationHeader() {
           <Logo fill={fill} />
           <Hidden>Navigate back to the homepage</Hidden>
         </LogoLink>
+
         <NavControls>
-          {showBackArrow ? (
-            <button
-              onClick={() => navigate(previousPath)}
-              title="Navigate back to the homepage"
-              aria-label="Navigate back to the homepage"
-            >
-              <Icons.Ex fill={fill} />
-            </button>
-          ) : (
-            <>
-              <SharePageButton />
-              <DarkModeToggle />
-            </>
-          )}
+
+        <NavLink
+        to="/about"
+        data-a11y="false"
+        title="Know me"
+        aria-label="Navigate to the About Me Page"
+      >
+        About
+      </NavLink>
+
+      <NavLink
+      to="/"
+      data-a11y="false"
+      title="Know me"
+      aria-label="Navigate to the About Me Page"
+    >
+      Contact
+    </NavLink>
+
+
+
+          <DarkModeToggle />
         </NavControls>
       </NavContainer>
     </Section>
@@ -195,14 +192,41 @@ const LogoLink = styled(Link)<{ back: string }>`
   }
 `;
 
-const NavControls = styled.div`
+
+const NavLink = styled(Link)<>`
+  opacity: 0.55;
   position: relative;
   display: flex;
   align-items: center;
+  right: 0;
+  margin-right: 20px;
+  transition: opacity 0.3s ease;
+  font-style: normal;
+  font-weight: 600;
+  color: ${p => p.theme.colors.primary};
 
-  ${mediaqueries.phablet`
-    right: -5px;
-  `}
+  &:hover {
+    opacity: 1;
+  }
+
+
+  &[data-a11y="true"]:focus::after {
+    content: "";
+    position: absolute;
+    left: -10%;
+    top: -30%;
+    width: 120%;
+    height: 160%;
+    border: 2px solid ${p => p.theme.colors.accent};
+    background: rgba(255, 255, 255, 0.01);
+    border-radius: 5px;
+  }
+
+`;
+
+const NavControls = styled.div`
+  display: flex;
+  align-items: center;
 `;
 
 const ToolTip = styled.div<{ isDark: boolean; hasCopied: boolean }>`
@@ -336,7 +360,7 @@ const MoonMask = styled.div<{ isDark: boolean }>`
   background: ${p => p.theme.colors.background};
   transform: translate(${p => (p.isDark ? "14px, -14px" : "0, 0")});
   opacity: ${p => (p.isDark ? 0 : 1)};
-  transition: ${p => p.theme.colorModeTransition}, transform 0.45s ease;
+  transition: background 0.25s var(--ease-in-out-quad), transform 0.45s ease;
 `;
 
 const Hidden = styled.span`
